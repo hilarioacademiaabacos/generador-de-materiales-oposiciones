@@ -167,6 +167,10 @@ app.post('/generate', async (req, res) => {
     let html = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
     html = html.replace(/^```html?\s*/i,'').replace(/```\s*$/,'').trim();
 
+    if (type === 'test') {
+      html = html.replace(/(const QUESTIONS=\[[\s\S]*?\]);[\s\S]*?(<\/script>)/g, '$1$2');
+    }
+
     if (!html.toLowerCase().includes('<!doctype') && !html.toLowerCase().includes('<html')) {
       throw new Error('La respuesta no contiene HTML válido. Inténtalo de nuevo.');
     }
