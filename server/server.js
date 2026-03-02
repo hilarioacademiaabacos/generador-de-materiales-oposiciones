@@ -163,25 +163,28 @@ app.post('/generate', async (req, res) => {
       throw new Error(err?.error?.message || `Error HTTP ${response.status}`);
     }
 
+    // ... (código anterior igual)
+
     const data = await response.json();
     let html = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    
+    // 1. Limpiamos posibles bloques de markdown que Gemini a veces añade por error
     html = html.replace(/^```html?\s*/i,'').replace(/```\s*$/,'').trim();
 
-    if (type === 'test') {
+    // 2. ELIMINAMOS ESTA PARTE (Causa el error):
+    /* if (type === 'test') {
       html = html.replace(/(const QUESTIONS=\[[\s\S]*?\]);[\s\S]*?(<\/script>)/g, '$1$2');
     }
+    */
 
+    // 3. Verificamos que el HTML sea válido
     if (!html.toLowerCase().includes('<!doctype') && !html.toLowerCase().includes('<html')) {
       throw new Error('La respuesta no contiene HTML válido. Inténtalo de nuevo.');
     }
 
     res.json({ html });
 
-  } catch(err) {
-    console.error('Error Gemini:', err.message);
-    res.status(500).json({ error: err.message });
-  }
-});
+// ... (resto del código igual)
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`✅ Servidor activo en puerto ${PORT}`));
