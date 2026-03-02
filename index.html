@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de Materiales de Oposiciones</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:    #1a2744;
+  --navy2:   #243260;
+  --amber:   #e8a020;
+  --amber-d: #c4790a;
+  --amber-p: #fff8e8;
+  --cream:   #faf6f0;
+  --white:   #ffffff;
+  --teal:    #1a7a6e;
+  --teal-p:  #e8f5f3;
+  --red:     #c0392b;
+  --red-p:   #fdecea;
+  --green:   #16a34a;
+  --green-p: #dcfce7;
+  --muted:   #6b7280;
+  --border:  #e2d8cc;
+  --text:    #1e1e1e;
+  --shadow:    0 4px 24px rgba(0,0,0,0.09);
+  --shadow-lg: 0 12px 48px rgba(0,0,0,0.14);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body {
+  font-family:'DM Sans',sans-serif;
+  background:var(--cream);color:var(--text);min-height:100vh;
+}
+body::before {
+  content:'';position:fixed;inset:0;z-index:-1;
+  background:
+    radial-gradient(ellipse 70% 50% at 85% 5%,rgba(232,160,32,.13) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 40% at 5% 95%,rgba(26,39,68,.08) 0%,transparent 60%);
+}
+
+/* HEADER */
+.app-header {
+  background:var(--navy);padding:28px 32px 24px;
+  display:flex;align-items:center;gap:18px;
+  position:relative;overflow:hidden;
+}
+.app-header::after {
+  content:'';position:absolute;right:-60px;top:-60px;
+  width:220px;height:220px;border-radius:50%;
+  background:rgba(232,160,32,.12);
+}
+.header-icon {
+  width:52px;height:52px;border-radius:14px;
+  background:var(--amber);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;flex-shrink:0;
+}
+.header-text h1 {
+  font-family:'Playfair Display',serif;
+  font-size:clamp(1.1rem,3vw,1.5rem);font-weight:900;
+  color:white;line-height:1.2;
+}
+.header-text p { color:rgba(255,255,255,.55);font-size:.83rem;margin-top:4px; }
+
+/* MAIN */
+.app-main { max-width:860px;margin:0 auto;padding:32px 20px 60px; }
+
+/* CONFIG BANNER */
+.config-banner {
+  background:var(--red-p);border:1.5px solid var(--red);
+  border-radius:12px;padding:14px 18px;
+  font-size:.87rem;color:#7f1d1d;margin-bottom:24px;
+  display:none;
+}
+.config-banner.visible { display:block; }
+.config-banner strong { color:var(--red); }
+
+/* UPLOAD */
+.upload-section {
+  background:white;border-radius:16px;
+  box-shadow:var(--shadow);padding:28px;margin-bottom:28px;
+}
+.upload-section h2 {
+  font-family:'Playfair Display',serif;
+  font-size:1.15rem;font-weight:700;color:var(--navy);margin-bottom:6px;
+}
+.upload-section p { font-size:.88rem;color:var(--muted);margin-bottom:18px; }
+.upload-box {
+  border:2.5px dashed var(--border);border-radius:12px;
+  padding:32px 20px;text-align:center;cursor:pointer;
+  transition:border-color .2s,background .2s;
+  position:relative;background:var(--cream);
+}
+.upload-box:hover,.upload-box.drag { border-color:var(--amber);background:var(--amber-p); }
+.upload-box input[type=file] {
+  position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;
+}
+.upload-icon { font-size:2.4rem;margin-bottom:10px; }
+.upload-label { font-size:.93rem;font-weight:600;color:var(--navy);margin-bottom:4px; }
+.upload-sub   { font-size:.8rem;color:var(--muted); }
+.file-pill {
+  display:none;align-items:center;gap:10px;
+  background:var(--teal-p);border:1px solid var(--teal);
+  border-radius:8px;padding:10px 16px;
+  font-size:.88rem;font-weight:600;color:var(--teal);margin-top:14px;
+}
+.file-pill.visible { display:flex; }
+.remove-file {
+  margin-left:auto;cursor:pointer;font-size:1rem;
+  color:var(--teal);opacity:.7;background:none;border:none;
+}
+.remove-file:hover { opacity:1; }
+
+/* STEPS */
+.steps-grid { display:grid;grid-template-columns:1fr;gap:18px; }
+.step-card {
+  background:white;border-radius:16px;
+  box-shadow:var(--shadow);overflow:hidden;
+  transition:box-shadow .2s;
+}
+.step-card:hover { box-shadow:var(--shadow-lg); }
+.step-header {
+  display:flex;align-items:center;gap:14px;
+  padding:20px 24px;border-bottom:1px solid var(--border);
+  cursor:pointer;user-select:none;
+}
+.step-num {
+  width:38px;height:38px;border-radius:50%;
+  background:var(--navy);color:var(--amber);
+  font-family:'Playfair Display',serif;
+  font-weight:900;font-size:1.1rem;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.step-info { flex:1; }
+.step-info h3 { font-weight:700;font-size:1rem;color:var(--navy);margin-bottom:2px; }
+.step-info p  { font-size:.8rem;color:var(--muted); }
+.step-status {
+  font-size:.75rem;font-weight:700;
+  padding:4px 10px;border-radius:20px;
+  background:var(--border);color:var(--muted);white-space:nowrap;
+}
+.step-status.ready   { background:#fef3c7;color:#92400e; }
+.step-status.done    { background:var(--green-p);color:var(--green); }
+.step-status.working { background:#ede9fe;color:#5b21b6; }
+.step-status.error   { background:var(--red-p);color:var(--red); }
+
+.step-body { padding:22px 24px;display:none; }
+.step-body.open { display:block;animation:fadeIn .3s ease; }
+
+/* BUTTONS */
+.btn {
+  display:inline-flex;align-items:center;gap:8px;
+  padding:12px 22px;border:none;border-radius:10px;
+  cursor:pointer;font-family:'DM Sans',sans-serif;
+  font-size:.93rem;font-weight:600;
+  transition:transform .15s,box-shadow .15s,background .15s,opacity .15s;
+}
+.btn:active { transform:scale(.97); }
+.btn:disabled { opacity:.5;cursor:not-allowed; }
+.btn-generate {
+  background:var(--amber);color:var(--navy);
+  box-shadow:0 4px 14px rgba(232,160,32,.35);
+  width:100%;justify-content:center;font-size:1rem;
+}
+.btn-generate:hover:not(:disabled) { background:var(--amber-d);color:white; }
+.btn-download {
+  background:var(--navy);color:white;
+  box-shadow:0 4px 14px rgba(26,39,68,.25);
+  width:100%;justify-content:center;margin-top:14px;display:none;
+}
+.btn-download:hover { background:var(--navy2); }
+.btn-download.visible { display:inline-flex;animation:slideUp .3s ease; }
+
+/* LOADER */
+.loader {
+  display:none;flex-direction:column;
+  align-items:center;gap:14px;padding:24px 0;
+}
+.loader.visible { display:flex;animation:fadeIn .3s ease; }
+.spinner {
+  width:44px;height:44px;
+  border:4px solid var(--border);
+  border-top-color:var(--amber);
+  border-radius:50%;animation:spin 1s linear infinite;
+}
+.loader-text  { font-size:.88rem;color:var(--muted);font-weight:500;text-align:center; }
+.loader-step  { font-size:.8rem;color:var(--amber-d);font-weight:600; }
+
+/* ALERT */
+.alert {
+  display:none;border-radius:10px;padding:14px 16px;
+  font-size:.87rem;line-height:1.55;margin-bottom:14px;
+}
+.alert.visible { display:block;animation:fadeIn .3s ease; }
+.alert.info    { background:var(--amber-p);border-left:4px solid var(--amber);color:#6b3a00; }
+.alert.success { background:var(--green-p);border-left:4px solid var(--green);color:#14532d; }
+.alert.error   { background:var(--red-p);border-left:4px solid var(--red);color:#7f1d1d; }
+
+/* NOTICE */
+.notice {
+  background:var(--navy);color:rgba(255,255,255,.7);
+  border-radius:12px;padding:16px 20px;
+  font-size:.82rem;line-height:1.65;margin-top:28px;
+}
+.notice strong { color:var(--amber); }
+
+@keyframes fadeIn  { from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none} }
+@keyframes slideUp { from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none} }
+@keyframes spin    { to{transform:rotate(360deg)} }
+
+@media(max-width:500px){
+  .app-header{padding:20px 18px}
+  .app-main{padding:20px 14px 50px}
+  .upload-section,.step-body{padding:18px 16px}
+  .step-header{padding:16px 18px}
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-icon">📚</div>
+  <div class="header-text">
+    <h1>Generador de Materiales de Oposiciones</h1>
+    <p>Sube el PDF de tu tema y genera automáticamente la infografía, el discurso píldora y el test de repaso</p>
+  </div>
+</header>
+
+<main class="app-main">
+
+  <!-- Banner si falta configurar la URL del servidor -->
+  <div class="config-banner" id="config-banner">
+    ⚠️ <strong>Configuración pendiente:</strong> Edita el archivo <code>index.html</code> y reemplaza <code>TU-SERVIDOR.onrender.com</code> por la URL real de tu servidor en Render.
+  </div>
+
+  <!-- UPLOAD -->
+  <div class="upload-section">
+    <h2>Paso previo — Sube el documento del tema</h2>
+    <p>Acepta archivos PDF. El contenido se procesará en el servidor para generar los tres materiales.</p>
+    <div class="upload-box" id="upload-box"
+      ondragover="event.preventDefault();this.classList.add('drag')"
+      ondragleave="this.classList.remove('drag')"
+      ondrop="handleDrop(event)">
+      <input type="file" accept=".pdf" id="file-input" onchange="handleFile(this.files[0])">
+      <div class="upload-icon">📄</div>
+      <div class="upload-label">Arrastra aquí el PDF del tema o haz clic para seleccionarlo</div>
+      <div class="upload-sub">Solo PDF · Máximo recomendado: 20 páginas</div>
+    </div>
+    <div class="file-pill" id="file-pill">
+      <span>📎</span>
+      <span id="file-name">—</span>
+      <button class="remove-file" onclick="removeFile()">✕</button>
+    </div>
+  </div>
+
+  <!-- STEPS -->
+  <div class="steps-grid">
+
+    <div class="step-card">
+      <div class="step-header" onclick="toggleStep(1)">
+        <div class="step-num">1</div>
+        <div class="step-info">
+          <h3>🗺️ Infografía interactiva HTML</h3>
+          <p>Desplegables, ejemplos de aula y legislación — listo para tu web o Moodle</p>
+        </div>
+        <div class="step-status" id="status-1">Esperando PDF</div>
+      </div>
+      <div class="step-body" id="body-1">
+        <div class="alert info visible" id="alert-1">Sube primero el PDF del tema para activar la generación.</div>
+        <div class="loader" id="loader-1">
+          <div class="spinner"></div>
+          <div class="loader-text">Generando la infografía…<br>Este proceso puede tardar entre 30 y 60 segundos.</div>
+          <div class="loader-step" id="loader-step-1"></div>
+        </div>
+        <button class="btn btn-generate" id="btn-gen-1" onclick="generate(1)" disabled>✨ Generar infografía</button>
+        <button class="btn btn-download" id="btn-dl-1" onclick="download(1)">⬇️ Descargar infografía (.html)</button>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-header" onclick="toggleStep(2)">
+        <div class="step-num">2</div>
+        <div class="step-info">
+          <h3>🎤 Discurso píldora — 15 minutos</h3>
+          <p>Guion conversacional con tiempos y conectores — descargable e imprimible</p>
+        </div>
+        <div class="step-status" id="status-2">Esperando PDF</div>
+      </div>
+      <div class="step-body" id="body-2">
+        <div class="alert info visible" id="alert-2">Sube primero el PDF del tema para activar la generación.</div>
+        <div class="loader" id="loader-2">
+          <div class="spinner"></div>
+          <div class="loader-text">Redactando el discurso píldora…<br>Este proceso puede tardar entre 30 y 60 segundos.</div>
+          <div class="loader-step" id="loader-step-2"></div>
+        </div>
+        <button class="btn btn-generate" id="btn-gen-2" onclick="generate(2)" disabled>✨ Generar discurso píldora</button>
+        <button class="btn btn-download" id="btn-dl-2" onclick="download(2)">⬇️ Descargar discurso (.html imprimible)</button>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-header" onclick="toggleStep(3)">
+        <div class="step-num">3</div>
+        <div class="step-info">
+          <h3>✅ Test de repaso interactivo</h3>
+          <p>30 preguntas con feedback inmediato y resultados personalizados</p>
+        </div>
+        <div class="step-status" id="status-3">Esperando PDF</div>
+      </div>
+      <div class="step-body" id="body-3">
+        <div class="alert info visible" id="alert-3">Sube primero el PDF del tema para activar la generación.</div>
+        <div class="loader" id="loader-3">
+          <div class="spinner"></div>
+          <div class="loader-text">Generando las 30 preguntas del test…<br>Este proceso puede tardar entre 45 y 90 segundos.</div>
+          <div class="loader-step" id="loader-step-3"></div>
+        </div>
+        <button class="btn btn-generate" id="btn-gen-3" onclick="generate(3)" disabled>✨ Generar test de repaso</button>
+        <button class="btn btn-download" id="btn-dl-3" onclick="download(3)">⬇️ Descargar test (.html)</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="notice">
+    <strong>ℹ️ Sobre los archivos generados:</strong> Los tres outputs son HTML autocontenidos. La infografía y el test están listos para incrustar en Moodle o en tu web. El discurso es imprimible: ábrelo en el navegador y usa <strong>Ctrl+P → Guardar como PDF</strong>. Cada generación es independiente y puede repetirse sin perder los demás archivos.
+  </div>
+
+</main>
+
+<script>
+// ══════════════════════════════════════════════
+//  CONFIGURACIÓN — CAMBIA ESTA URL
+//  Cuando tengas tu servidor en Render, reemplaza
+//  el valor de SERVER_URL por tu URL real.
+// ══════════════════════════════════════════════
+const SERVER_URL = 'https://TU-SERVIDOR.onrender.com';
+
+const TIPOS = { 1: 'infografia', 2: 'discurso', 3: 'test' };
+const LABEL_LOADING = {
+  1: 'Analizando estructura del tema…',
+  2: 'Redactando bloques del discurso…',
+  3: 'Creando preguntas del test…'
+};
+
+let fileBase64 = null;
+let fileName   = '';
+let outputs    = { 1: null, 2: null, 3: null };
+
+// Comprobar si falta configurar el servidor
+window.addEventListener('DOMContentLoaded', () => {
+  if (SERVER_URL.includes('TU-SERVIDOR')) {
+    document.getElementById('config-banner').classList.add('visible');
+  }
+  openStep(1);
+});
+
+// ── FILE ──────────────────────────────────────
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-box').classList.remove('drag');
+  const f = e.dataTransfer.files[0];
+  if (f) handleFile(f);
+}
+
+function handleFile(file) {
+  if (!file || file.type !== 'application/pdf') {
+    alert('Por favor, selecciona un archivo PDF válido.');
+    return;
+  }
+  fileName = file.name;
+  const reader = new FileReader();
+  reader.onload = e => {
+    fileBase64 = e.target.result.split(',')[1];
+    onFileReady();
+  };
+  reader.readAsDataURL(file);
+}
+
+function onFileReady() {
+  document.getElementById('file-name').textContent = fileName;
+  document.getElementById('file-pill').classList.add('visible');
+  [1,2,3].forEach(i => {
+    document.getElementById(`btn-gen-${i}`).disabled = false;
+    setStatus(i, 'ready', 'Listo para generar');
+    setAlert(i, `PDF cargado: <strong>${fileName}</strong>. Pulsa el botón para generar.`, 'success');
+  });
+}
+
+function removeFile() {
+  fileBase64 = null; fileName = '';
+  document.getElementById('file-pill').classList.remove('visible');
+  document.getElementById('file-input').value = '';
+  [1,2,3].forEach(i => {
+    document.getElementById(`btn-gen-${i}`).disabled = true;
+    outputs[i] = null;
+    document.getElementById(`btn-dl-${i}`).style.display = 'none';
+    setStatus(i, '', 'Esperando PDF');
+    setAlert(i, 'Sube primero el PDF del tema para activar la generación.', 'info');
+  });
+}
+
+// ── ACCORDION ─────────────────────────────────
+function toggleStep(n) {
+  const body = document.getElementById(`body-${n}`);
+  body.classList.toggle('open');
+}
+function openStep(n) {
+  document.getElementById(`body-${n}`).classList.add('open');
+}
+
+// ── UI ─────────────────────────────────────────
+function setStatus(n, cls, text) {
+  const el = document.getElementById(`status-${n}`);
+  el.className = 'step-status' + (cls ? ' ' + cls : '');
+  el.textContent = text;
+}
+function setAlert(n, html, type) {
+  const el = document.getElementById(`alert-${n}`);
+  el.className = `alert ${type} visible`;
+  el.innerHTML = html;
+}
+function setLoader(n, visible) {
+  document.getElementById(`loader-${n}`).className = 'loader' + (visible ? ' visible' : '');
+}
+
+// ── GENERATE ───────────────────────────────────
+async function generate(step) {
+  if (!fileBase64) return;
+  if (SERVER_URL.includes('TU-SERVIDOR')) {
+    alert('⚠️ Configura primero la URL del servidor en el archivo index.html');
+    return;
+  }
+
+  const btn = document.getElementById(`btn-gen-${step}`);
+  btn.disabled = true;
+  outputs[step] = null;
+  document.getElementById(`btn-dl-${step}`).style.display = 'none';
+  setLoader(step, true);
+  setStatus(step, 'working', 'Generando…');
+  setAlert(step, '⏳ Generando, por favor espera…', 'info');
+
+  // Animated dots
+  let dot = 0;
+  const dotInterval = setInterval(() => {
+    dot++;
+    document.getElementById(`loader-step-${step}`).textContent =
+      LABEL_LOADING[step].replace('…', '.'.repeat((dot % 3) + 1));
+  }, 800);
+
+  try {
+    const res = await fetch(`${SERVER_URL}/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: TIPOS[step], fileBase64 })
+    });
+
+    clearInterval(dotInterval);
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `Error HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+    if (!data.html) throw new Error('El servidor no devolvió HTML válido.');
+
+    outputs[step] = data.html;
+    setLoader(step, false);
+    setStatus(step, 'done', '✓ Generado');
+    setAlert(step, '✅ <strong>¡Listo!</strong> Pulsa el botón de descarga para guardar el archivo.', 'success');
+    const dlBtn = document.getElementById(`btn-dl-${step}`);
+    dlBtn.style.display = 'inline-flex';
+
+  } catch(err) {
+    clearInterval(dotInterval);
+    setLoader(step, false);
+    setStatus(step, 'error', 'Error');
+    setAlert(step, `❌ <strong>Error:</strong> ${err.message}`, 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ── DOWNLOAD ───────────────────────────────────
+function download(step) {
+  if (!outputs[step]) return;
+  const base = fileName.replace(/\.pdf$/i,'').replace(/[^a-z0-9]/gi,'_').substring(0,40);
+  const names = {
+    1: `infografia_${base}.html`,
+    2: `discurso_pildora_${base}.html`,
+    3: `test_repaso_${base}.html`
+  };
+  const blob = new Blob([outputs[step]], { type: 'text/html;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = names[step];
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
