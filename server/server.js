@@ -1,26 +1,18 @@
-const express  = require('express');
-const cors     = require('cors');
-const Anthropic = require('@anthropic-ai/sdk');
+const express = require('express');
+const cors    = require('cors');
 require('dotenv').config();
 
 const app = express();
 
-// ── CORS: permite peticiones desde GitHub Pages y Moodle ──
-app.use(cors({
-  origin: '*', // puedes restringir a tu dominio Moodle si lo deseas
-  methods: ['POST', 'GET'],
-}));
-
+app.use(cors({ origin: '*', methods: ['POST', 'GET'] }));
 app.use(express.json({ limit: '20mb' }));
-
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 // ── Healthcheck ──────────────────────────────────────────
 app.get('/', (req, res) => {
-  res.json({ status: 'ok', message: 'Generador de Materiales de Oposiciones — API activa' });
+  res.json({ status: 'ok', message: 'Generador de Materiales de Oposiciones — API activa (Gemini)' });
 });
 
-// ── Prompts por tipo ─────────────────────────────────────
+// ── Prompts ──────────────────────────────────────────────
 function getPrompt(type) {
   if (type === 'infografia') return `Eres un experto en didáctica y diseño web. Analiza el documento PDF adjunto que corresponde a un tema de oposiciones al Cuerpo de Maestros de Educación Primaria en Extremadura.
 
@@ -46,7 +38,7 @@ El output debe ser un archivo HTML imprimible (diseño A4, con estilos de impres
 REQUISITOS DEL DISCURSO:
 1. Bloques con tiempo orientativo que sumen ~15 minutos.
 2. Tono cercano y conversacional: párrafos fluidos, no listas ni esquemas.
-3. Conectores naturales entre bloques ("Precisamente por ello...", "Y esto nos lleva a...").
+3. Conectores naturales entre bloques.
 4. Cada bloque incluye una indicación visual (recuadro dorado) sobre qué señalar en la infografía.
 5. Términos clave, autores y normativa en negrita.
 6. Conclusión sintética y potente de 2-3 frases.
@@ -90,40 +82,54 @@ app.post('/generate', async (req, res) => {
   if (!['infografia', 'discurso', 'test'].includes(type)) {
     return res.status(400).json({ error: 'Tipo no válido. Usa: infografia, discurso o test.' });
   }
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return res.status(500).json({ error: 'API key no configurada en el servidor.' });
+  if (!process.env.GEMINI_API_KEY) {
+    return res.status(500).json({ error: 'API key de Gemini no configurada en el servidor.' });
   }
 
   try {
-    const message = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 16000,
-      messages: [{
-        role: 'user',
-        content: [
-          {
-            type: 'document',
-            source: { type: 'base64', media_type: 'application/pdf', data: fileBase64 }
-          },
-          { type: 'text', text: getPrompt(type) }
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+
+    const body = {
+      contents: [{
+        parts: [
+          { inline_data: { mime_type: 'application/pdf', data: fileBase64 } },
+          { text: getPrompt(type) }
         ]
-      }]
+      }],
+      generationConfig: { maxOutputTokens: 16000, temperature: 0.7 }
+    };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
     });
 
-    let html = message.content.map(b => b.text || '').join('');
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err?.error?.message || `Error HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    let html = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
     // Limpiar posibles bloques markdown
     html = html.replace(/^```html?\s*/i, '').replace(/```\s*$/, '').trim();
+
+    if (!html.toLowerCase().includes('<!doctype') && !html.toLowerCase().includes('<html')) {
+      throw new Error('La respuesta no contiene HTML válido. Inténtalo de nuevo.');
+    }
 
     res.json({ html });
 
   } catch (err) {
-    console.error('Error Anthropic:', err.message);
-    res.status(500).json({ error: err.message || 'Error al llamar a la API de Anthropic.' });
+    console.error('Error Gemini:', err.message);
+    res.status(500).json({ error: err.message || 'Error al llamar a la API de Gemini.' });
   }
 });
 
 // ── Arrancar servidor ────────────────────────────────────
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`✅ Servidor activo en puerto ${PORT}`);
+  console.log(`✅ Servidor activo en puerto ${PORT} — usando Gemini 1.5 Flash (gratuito)`);
 });
